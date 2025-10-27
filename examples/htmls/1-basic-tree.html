@@ -16,10 +16,6 @@
 import f3 from '../../src/index.js'
 import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.7/+esm'
 
-// list of all example. delete this if not needed
-import sidebar from '../sidebar.js'
-sidebar()
-
 axios.get('http://localhost:3002/api/persons')
   .then(res => res.data)
   .then(data => create(data))
