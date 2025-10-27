@@ -14,13 +14,14 @@
 <div id="FamilyChart" class="f3" style="width:100%;height:900px;margin:auto;background-color:rgb(33,33,33);color:#fff;"></div>
 <script type="module">
 import f3 from '../../src/index.js'
+import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.7/+esm'
 
 // list of all example. delete this if not needed
 import sidebar from '../sidebar.js'
 sidebar()
 
-fetch('../data/data.json')
-  .then(res => res.json())
+axios.get('http://localhost:3002/api/persons')
+  .then(res => res.data)
   .then(data => create(data))
   .catch(err => console.error(err))
 
