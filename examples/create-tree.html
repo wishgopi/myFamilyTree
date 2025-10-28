@@ -11,11 +11,39 @@
   <style> body { font-family: 'Arial', sans-serif; } </style>
 </head>
 <body>
-<div id="FamilyChart" class="f3" style="width:100%;height:900px;margin:auto;background-color:rgb(33,33,33);color:#fff;"></div>
+<div class="leftnav" style="position:fixed;top:0;left:0;bottom:0;width:220px;background:#1e1e1e;color:#fff;padding:16px;box-sizing:border-box;">
+  <h3 style="margin:0 0 12px 0;font-size:16px;">Actions</h3>
+  <a href="#" id="add-person" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Add Person</a>
+  <a href="#" id="add-parent" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Add Parent</a>
+  <a href="#" id="add-spouse" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Add Spouse</a>
+  <a href="#" id="add-son" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Add Son</a>
+  <a href="#" id="add-daughter" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Add Daughter</a>
+  <a href="#" id="update-person" style="display:block;color:#fff;text-decoration:none;background:#2b2b2b;padding:8px 10px;border-radius:6px;margin-bottom:8px;">Update Person</a>
+</div>
+<div id="FamilyChart" class="f3" style="width:calc(100% - 240px);height:900px;margin:0 0 0 240px;background-color:rgb(33,33,33);color:#fff;"></div>
+<aside class="rightpanel" id="spouse-panel" style="position:fixed;top:0;right:0;bottom:0;width:320px;background:#1e1e1e;color:#fff;box-shadow:-4px 0 16px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;">
+  <header style="padding:14px 16px;background:#222;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #333;">
+    <h3 style="margin:0;font-size:16px;">Add Spouse</h3>
+    <button type="button" id="spouse-close" style="background:#2b2b2b;color:#fff;border:0;padding:6px 10px;border-radius:6px;cursor:pointer;">Close</button>
+  </header>
+  <div class="content" style="padding:14px 16px;overflow:auto;">
+    <form id="spouse-form">
+      <div class="field"><label for="s_first_name" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">First Name</label><input id="s_first_name" name="s_first_name" type="text" placeholder="First name" style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;" /></div>
+      <div class="field"><label for="s_last_name" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">Last Name</label><input id="s_last_name" name="s_last_name" type="text" placeholder="Last name" style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;" /></div>
+      <div class="field"><label for="s_gender" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">Gender</label><select id="s_gender" name="s_gender" style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;"><option value="M">M</option><option value="F">F</option><option value="O">O</option></select></div>
+      <div class="field"><label for="s_birthday" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">Birthday</label><input id="s_birthday" name="s_birthday" type="text" placeholder="e.g. 1970" style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;" /></div>
+      <div class="field"><label for="s_gotram" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">Gotram</label><input id="s_gotram" name="s_gotram" type="text" placeholder="Gotram" style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;" /></div>
+      <div class="field"><label for="s_avatar" style="display:block;font-size:12px;color:#bbb;margin-bottom:4px;">Avatar URL</label><input id="s_avatar" name="s_avatar" type="url" placeholder="https://..." style="width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:#2b2b2b;color:#fff;" /></div>
+      <div class="actions" style="margin-top:12px;display:flex;gap:8px;">
+        <button type="submit" class="btn-primary" style="flex:1;padding:10px;border:0;border-radius:6px;cursor:pointer;background:#4caf50;color:#000;">Save</button>
+        <button type="button" id="spouse-cancel" class="btn-secondary" style="flex:1;padding:10px;border:0;border-radius:6px;cursor:pointer;background:#444;color:#fff;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</aside>
 <script type="module">
-import f3 from '../src/index.js'
-
-// list of all example. delete this if not needed
+import f3 from '../../src/index.js'
+import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.7/+esm'
 import sidebar from './sidebar.js'
 sidebar()
 
@@ -39,9 +67,66 @@ function create(data) {
     .setCardClickOpen(f3Card)
     // .setNoEdit()  // if you want to just see info form
 
+  function setActiveFor(person) {
+    clearActive()
+    if (!person) return
+    // Always allow updating selected person
+    links.update?.classList.add('active')
+    // Always allow adding children for selected person
+    links.addSon?.classList.add('active')
+    links.addDaughter?.classList.add('active')
+    // Always allow adding spouse
+    links.addSpouse?.classList.add('active')
+    // Add Parent only if fewer than two parents
+    const count = Array.isArray(person.rels?.parents) ? person.rels.parents.length : 0
+    if (count < 2) links.addParent?.classList.add('active')
+  }
+
   f3Chart.updateTree({initial: true})
   f3EditTree.open(f3Chart.getMainDatum())
   f3Chart.updateTree({initial: true})
+
+  const spousePanel = document.getElementById('spouse-panel')
+  const spouseForm = document.getElementById('spouse-form')
+  const spouseClose = document.getElementById('spouse-close')
+  const spouseCancel = document.getElementById('spouse-cancel')
+  const links = {
+    addSpouse: document.getElementById('add-spouse')
+  }
+  let selectedId = null
+
+  f3Card.on('card-click', (d) => {
+    selectedId = d.id || d.data?.id || null
+  })
+
+  function openSpousePanel() { spousePanel.style.transform = 'translateX(0)' }
+  function closeSpousePanel() { spousePanel.style.transform = 'translateX(100%)' }
+
+  links.addSpouse?.addEventListener('click', (e) => {
+    e.preventDefault(); openSpousePanel()
+  })
+  spouseClose?.addEventListener('click', closeSpousePanel)
+  spouseCancel?.addEventListener('click', closeSpousePanel)
+
+  spouseForm?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    if (!selectedId) { alert('Select a person in the tree first'); return }
+    const fd = new FormData(spouseForm)
+    const s = {
+      first: (fd.get('s_first_name')||'').toString().trim(),
+      last: (fd.get('s_last_name')||'').toString().trim(),
+      gender: (fd.get('s_gender')||'').toString().trim(),
+      birthday: (fd.get('s_birthday')||'').toString().trim(),
+      gotram: (fd.get('s_gotram')||'').toString().trim(),
+      avatar: (fd.get('s_avatar')||'').toString().trim(),
+    }
+    if (!s.first && !s.last) { alert('Enter at least a first or last name for the spouse'); return }
+    try {
+      let spouse = (await axios.post('http://localhost:3002/api/persons', { data: { 'first name': s.first, 'last name': s.last, gender: s.gender, birthday: s.birthday, avatar: s.avatar, gotram: s.gotram } })).data
+      await axios.post('http://localhost:3002/api/relations/spouse', { a_id: selectedId, b_id: spouse.id })
+      closeSpousePanel(); window.location.reload()
+    } catch (err) { console.error(err); alert('Failed to add spouse') }
+  })
 }
 
 </script>

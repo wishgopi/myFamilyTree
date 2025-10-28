@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,20 +7,191 @@
   <link rel="shortcut icon" type="image/svg" href="/examples/logo.svg">
   <script src="https://unpkg.com/d3@7"></script>
   <link rel="stylesheet" href="/src/styles/family-chart.css">
-  <style> body { font-family: 'Arial', sans-serif; } </style>
+  <style>
+    body { font-family: 'Arial', sans-serif; }
+    .leftnav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 220px;
+      background: #1e1e1e;
+      color: #fff;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .leftnav h3 { margin: 0 0 12px 0; font-size: 16px; }
+    .leftnav a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      background: #2b2b2b;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .leftnav a:hover { background: #3a3a3a; }
+    .leftnav a.active { background: #4caf50; color: #000; }
+
+    /* right-side panel (form/modal) */
+    .rightpanel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 320px;
+      background: #1e1e1e;
+      color: #fff;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.4);
+      transform: translateX(100%);
+      transition: transform 0.25s ease-in-out;
+      display: flex;
+      flex-direction: column;
+    }
+    .rightpanel.open { transform: translateX(0); }
+    .rightpanel header {
+      padding: 14px 16px;
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+    }
+    .rightpanel header h3 { margin: 0; font-size: 16px; }
+    .rightpanel header button { background:#2b2b2b; color:#fff; border:0; padding:6px 10px; border-radius:6px; cursor:pointer; }
+    .rightpanel header button:hover { background:#3a3a3a; }
+    .rightpanel .content { padding: 14px 16px; overflow:auto; }
+    .rightpanel .field { margin-bottom: 10px; }
+    .rightpanel label { display:block; font-size:12px; color:#bbb; margin-bottom:4px; }
+    .rightpanel input, .rightpanel select { width:100%; padding:8px; border-radius:6px; border:1px solid #444; background:#2b2b2b; color:#fff; }
+    .rightpanel .actions { margin-top: 12px; display:flex; gap:8px; }
+    .rightpanel .actions button { flex:1; padding:10px; border:0; border-radius:6px; cursor:pointer; }
+    .btn-primary { background:#4caf50; color:#000; }
+    .btn-secondary { background:#444; color:#fff; }
+  </style>
 </head>
 <body>
-<div id="FamilyChart" class="f3" style="width:100%;height:900px;margin:auto;background-color:rgb(33,33,33);color:#fff;"></div>
+<div class="leftnav">
+  <h3>Actions</h3>
+  <a href="http://localhost:8080/examples/htmls/1-basic-tree.html" id="my-family-tree">MyFamilyTree</a>
+  <a href="#" id="add-person">Add Person</a>
+  <a href="#" id="add-parent">Add Parent</a>
+  <a href="#" id="add-spouse">Add Spouse</a>
+  <a href="#" id="add-son">Add Son</a>
+  <a href="#" id="add-daughter">Add Daughter</a>
+  <a href="#" id="update-person">Update Person</a>
+</div>
+<div id="FamilyChart" class="f3" style="width:calc(100% - 240px);height:900px;margin:0 0 0 240px;background-color:rgb(33,33,33);color:#fff;"></div>
+
+<!-- Right-side form panel for Add Parent -->
+<aside class="rightpanel" id="rightpanel">
+  <header>
+    <h3 id="panel-title">Add Parent</h3>
+    <button type="button" id="panel-close">Close</button>
+  </header>
+  <div class="content">
+    <form id="parent-form">
+      <div style="margin-bottom:12px;color:#bbb;">Parent 1</div>
+      <div class="field">
+        <label for="p1_first_name">First Name</label>
+        <input id="p1_first_name" name="p1_first_name" type="text" placeholder="First name" />
+      </div>
+      <div class="field">
+        <label for="p1_last_name">Last Name</label>
+        <input id="p1_last_name" name="p1_last_name" type="text" placeholder="Last name" />
+      </div>
+      <div class="field">
+        <label for="p1_gender">Gender</label>
+        <select id="p1_gender" name="p1_gender">
+          <option value="M">M</option>
+          <option value="F">F</option>
+          <option value="O">O</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p1_birthday">Birthday</label>
+        <input id="p1_birthday" name="p1_birthday" type="text" placeholder="e.g. 1970" />
+      </div>
+      <div class="field">
+        <label for="p1_gotram">Gotram</label>
+        <input id="p1_gotram" name="p1_gotram" type="text" placeholder="Gotram" />
+      </div>
+      <div class="field">
+        <label for="p1_avatar">Avatar URL</label>
+        <input id="p1_avatar" name="p1_avatar" type="url" placeholder="https://..." />
+      </div>
+
+      <hr style="border-color:#333;margin:14px 0;">
+      <div style="margin-bottom:12px;color:#bbb;">Parent 2</div>
+      <div class="field">
+        <label for="p2_first_name">First Name</label>
+        <input id="p2_first_name" name="p2_first_name" type="text" placeholder="First name" />
+      </div>
+      <div class="field">
+        <label for="p2_last_name">Last Name</label>
+        <input id="p2_last_name" name="p2_last_name" type="text" placeholder="Last name" />
+      </div>
+      <div class="field">
+        <label for="p2_gender">Gender</label>
+        <select id="p2_gender" name="p2_gender">
+          <option value="M">M</option>
+          <option value="F">F</option>
+          <option value="O">O</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p2_birthday">Birthday</label>
+        <input id="p2_birthday" name="p2_birthday" type="text" placeholder="e.g. 1970" />
+      </div>
+      <div class="field">
+        <label for="p2_gotram">Gotram</label>
+        <input id="p2_gotram" name="p2_gotram" type="text" placeholder="Gotram" />
+      </div>
+      <div class="field">
+        <label for="p2_avatar">Avatar URL</label>
+        <input id="p2_avatar" name="p2_avatar" type="url" placeholder="https://..." />
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" class="btn-secondary" id="panel-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+  
+</aside>
 <script type="module">
 import f3 from '../../src/index.js'
 import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.7/+esm'
 
+// left nav links
+const links = {
+  addPerson: document.getElementById('add-person'),
+  addParent: document.getElementById('add-parent'),
+  addSpouse: document.getElementById('add-spouse'),
+  addSon: document.getElementById('add-son'),
+  addDaughter: document.getElementById('add-daughter'),
+  update: document.getElementById('update-person')
+}
+
+// right panel refs
+const panel = document.getElementById('rightpanel')
+const form = document.getElementById('parent-form')
+const closeBtn = document.getElementById('panel-close')
+const cancelBtn = document.getElementById('panel-cancel')
+const panelTitle = document.getElementById('panel-title')
+
+let selectedId = null
+let dataset = []
+let panelMode = 'add-parent'
+
 axios.get('http://localhost:3002/api/persons')
   .then(res => res.data)
-  .then(data => create(data))
+  .then(data => create(normalizeAndCollapse(data)))
   .catch(err => console.error(err))
 
 function create(data) {
+  dataset = data
   const cont = document.querySelector("#FamilyChart")
   const store = f3.createStore({
     data,
@@ -32,18 +202,375 @@ function create(data) {
   const Card = f3.elements.CardSvg({
     svg,
     card_dim: {w:220,h:70,text_x:75,text_y:15,img_w:60,img_h:60,img_x:5,img_y:5},
-    card_display: [d => `${d.data["first name"]} ${d.data["last name"]}`],
+    card_display: [d => `${(d.data?.["first name"]||'').toString()} ${(d.data?.["last name"]||'').toString()}`.trim()],
     mini_tree: true,
     link_break: false,
     onCardClick: (e, d) => {
       store.updateMainId(d.data.id)
       store.updateTree({})
+      selectedId = d.data.id
+      const person = dataset.find(p => String(p.id) === String(selectedId))
+      setActiveFor(person)
     }
   })
 
   store.setOnUpdate(props => f3.view(store.getTree(), svg, Card, props || {}))
   store.updateTree({initial: true})
 }
+
+function dedupeById(arr) {
+  const map = new Map()
+  for (const p of arr || []) {
+    const id = String(p?.id ?? '')
+    if (!id) continue
+    if (!map.has(id)) map.set(id, p)
+  }
+  return Array.from(map.values())
+}
+
+function personKeyByNameBirthday(p) {
+  const d = p?.data || {}
+  const fn = normalizeName(d['first name'])
+  const ln = normalizeName(d['last name'])
+  const bd = (d.birthday || '').toString().trim()
+  return `${fn}|${ln}|${bd}`
+}
+
+function collapseByNameBirthday(arr) {
+  const seen = new Set()
+  const out = []
+  for (const p of arr || []) {
+    const key = personKeyByNameBirthday(p)
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    out.push(p)
+  }
+  return out
+}
+
+// Build a normalized dataset where duplicates (same name+birthday) are collapsed
+// and all relationship IDs are remapped to the canonical person ID.
+function normalizeAndCollapse(arr) {
+  const list = Array.isArray(arr) ? arr.slice() : []
+  // Manual alias map for known duplicate IDs -> canonical ID
+  const MANUAL_ALIAS = new Map([
+    ['d747ec8a-b48f-4bf5-a489-efca36a0b344', '5bad4978-b0d5-45a9-beb9-bfff2e3b9d52'],
+  ])
+
+  function aliasKeyForPerson(p) {
+    const id = String(p?.id || '')
+    const target = MANUAL_ALIAS.get(id)
+    if (target) return `alias:${target}`
+    // If this id is a canonical target in the alias map, also group by itself
+    for (const [, v] of MANUAL_ALIAS.entries()) {
+      if (String(v) === id) return `alias:${id}`
+    }
+    return null
+  }
+
+  // 1) Group by name+birthday key
+  const groups = new Map()
+  for (const p of list) {
+    const aliasKey = aliasKeyForPerson(p)
+    const key = aliasKey || personKeyByNameBirthday(p)
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(p)
+  }
+  // 2) Choose canonical per group (first occurrence) and map oldId -> canonicalId
+  const idToCanonical = new Map()
+  const canonicalById = new Map()
+  const mergedRelsByCanonical = new Map()
+  for (const [, persons] of groups) {
+    if (persons.length === 0) continue
+    // Prefer the manual alias target as canonical if present in this group
+    let canonical = persons[0]
+    let canonicalId = String(canonical.id)
+    for (const m of persons) {
+      const target = MANUAL_ALIAS.get(String(m.id))
+      if (target) {
+        // If any member has an alias target, try to use the target as canonical
+        const found = persons.find(x => String(x.id) === String(target))
+        if (found) { canonical = found; canonicalId = String(found.id) }
+        else { canonicalId = String(target) }
+        break
+      }
+    }
+    canonicalById.set(canonicalId, canonical)
+    // start merged rels as empty arrays
+    const merged = { spouses: [], parents: [], children: [] }
+    for (const member of persons) {
+      const mid = String(member.id)
+      idToCanonical.set(mid, canonicalId)
+      const aliasTarget = MANUAL_ALIAS.get(mid)
+      if (aliasTarget) idToCanonical.set(String(aliasTarget), canonicalId)
+      const rels = member.rels || {}
+      if (Array.isArray(rels.spouses)) merged.spouses.push(...rels.spouses.map(String))
+      if (Array.isArray(rels.parents)) merged.parents.push(...rels.parents.map(String))
+      if (Array.isArray(rels.children)) merged.children.push(...rels.children.map(String))
+    }
+    mergedRelsByCanonical.set(canonicalId, merged)
+  }
+  // 3) Remap rels for canonical persons only
+  function remapIds(ids, selfId) {
+    const out = []
+    const seen = new Set()
+    for (const id of ids || []) {
+      const cid = idToCanonical.get(String(id)) || String(id)
+      if (cid === selfId) continue
+      if (!seen.has(cid)) { seen.add(cid); out.push(cid) }
+    }
+    return out
+  }
+  const normalized = []
+  for (const [cid, person] of canonicalById.entries()) {
+    // use merged rels from all duplicates in this group
+    const rels = mergedRelsByCanonical.get(cid) || { spouses: [], parents: [], children: [] }
+    const newRels = {
+      spouses: remapIds(rels.spouses, cid),
+      parents: remapIds(rels.parents, cid),
+      children: remapIds(rels.children, cid)
+    }
+    normalized.push({ id: cid, data: person.data || {}, rels: newRels })
+  }
+  return normalized
+}
+
+function normalizeName(s) {
+  return (s || '').toString().trim().toLowerCase()
+}
+
+function findExistingPerson(candidate) {
+  const fn = normalizeName(candidate.first)
+  const ln = normalizeName(candidate.last)
+  const bd = (candidate.birthday || '').toString().trim()
+  return dataset.find(p => {
+    const d = p.data || {}
+    return normalizeName(d['first name']) === fn &&
+           normalizeName(d['last name']) === ln &&
+           String(d.birthday || '') === bd
+  }) || null
+}
+
+function clearActive() {
+  document.querySelectorAll('.leftnav a').forEach(a => a.classList.remove('active'))
+}
+
+function setActiveFor(person) {
+  clearActive()
+  if (!person) return
+  // Always allow updating selected person
+  links.update?.classList.add('active')
+  // Always allow adding children for selected person
+  links.addSon?.classList.add('active')
+  links.addDaughter?.classList.add('active')
+  // Always allow adding spouse
+  links.addSpouse?.classList.add('active')
+  // Add Parent only if fewer than two parents
+  const count = Array.isArray(person.rels?.parents) ? person.rels.parents.length : 0
+  if (count < 2) links.addParent?.classList.add('active')
+}
+
+// panel helpers
+function openPanel() { panel.classList.add('open') }
+function closePanel() { panel.classList.remove('open') }
+
+links.addParent?.addEventListener('click', (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  panelMode = 'add-parent'
+  panelTitle.textContent = 'Add Parent'
+  form.reset()
+  openPanel()
+})
+
+// Open Add Spouse panel (uses Parent 1 fields)
+links.addSpouse?.addEventListener('click', (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  panelMode = 'add-spouse'
+  panelTitle.textContent = 'Add Spouse'
+  form.reset()
+  openPanel()
+})
+
+// Open Add Son panel
+links.addSon?.addEventListener('click', (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  panelMode = 'add-son'
+  panelTitle.textContent = 'Add Son'
+  form.reset()
+  if (form.p1_gender) form.p1_gender.value = 'M'
+  openPanel()
+})
+
+// Open Add Daughter panel
+links.addDaughter?.addEventListener('click', (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  panelMode = 'add-daughter'
+  panelTitle.textContent = 'Add Daughter'
+  form.reset()
+  if (form.p1_gender) form.p1_gender.value = 'F'
+  openPanel()
+})
+
+// Open Update Person panel
+links.update?.addEventListener('click', (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  panelMode = 'update-person'
+  panelTitle.textContent = 'Update Person'
+  const person = dataset.find(p => String(p.id) === String(selectedId)) || {}
+  const d = person.data || {}
+  form.first_name.value = d['first name'] || ''
+  form.last_name.value = d['last name'] || ''
+  form.gender.value = d.gender || 'M'
+  form.birthday.value = d.birthday || ''
+  form.avatar.value = d.avatar || ''
+  openPanel()
+})
+
+closeBtn?.addEventListener('click', () => closePanel())
+cancelBtn?.addEventListener('click', () => closePanel())
+
+form?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  if (!selectedId) { alert('Select a person in the tree first'); return }
+  const fd = new FormData(form)
+  // parent 1 values
+  const p1 = {
+    first: (fd.get('p1_first_name') || '').toString().trim(),
+    last: (fd.get('p1_last_name') || '').toString().trim(),
+    gender: (fd.get('p1_gender') || 'M').toString().trim(),
+    birthday: (fd.get('p1_birthday') || '').toString().trim(),
+    gotram: (fd.get('p1_gotram') || '').toString().trim(),
+    avatar: (fd.get('p1_avatar') || '').toString().trim(),
+  }
+  // parent 2 values
+  const p2 = {
+    first: (fd.get('p2_first_name') || '').toString().trim(),
+    last: (fd.get('p2_last_name') || '').toString().trim(),
+    gender: (fd.get('p2_gender') || 'M').toString().trim(),
+    birthday: (fd.get('p2_birthday') || '').toString().trim(),
+    gotram: (fd.get('p2_gotram') || '').toString().trim(),
+    avatar: (fd.get('p2_avatar') || '').toString().trim(),
+  }
+  if (panelMode === 'add-parent') {
+    const child = dataset.find(p => String(p.id) === String(selectedId))
+    const existingCount = Array.isArray(child?.rels?.parents) ? child.rels.parents.length : 0
+    if (existingCount === 0) {
+      // must provide TWO parents
+      const p1ok = !!(p1.first || p1.last)
+      const p2ok = !!(p2.first || p2.last)
+      if (!p1ok || !p2ok) {
+        alert('Please enter both Parent 1 and Parent 2. Two parents are required.');
+        return
+      }
+    } else if (existingCount === 1) {
+      // must provide EXACTLY one parent
+      const p1ok = !!(p1.first || p1.last)
+      const p2ok = !!(p2.first || p2.last)
+      if ((p1ok && p2ok) || (!p1ok && !p2ok)) {
+        alert('Please enter exactly one new parent. This child already has one parent.');
+        return
+      }
+    } else {
+      alert('This person already has two parents.');
+      return
+    }
+  } else if (panelMode === 'add-son' || panelMode === 'add-daughter') {
+    // Require at least a name for the child
+    if (!p1.first && !p1.last) { alert('Enter the child\'s name'); return }
+    // Require a spouse to link both parents
+    const person = dataset.find(p => String(p.id) === String(selectedId))
+    const spouses = Array.isArray(person?.rels?.spouses) ? person.rels.spouses : []
+    if (spouses.length === 0) {
+      alert('The selected person must have a spouse before adding a son/daughter (to link both parents).')
+      return
+    }
+  } else if (panelMode === 'add-spouse') {
+    if (!p1.first && !p1.last) { alert('Enter at least a first or last name for the spouse'); return }
+  } else {
+    if (!p1.first && !p1.last) { alert('Enter at least a first or last name'); return }
+  }
+  try {
+    if (panelMode === 'update-person') {
+      await axios.put(`http://localhost:3002/api/persons/${encodeURIComponent(selectedId)}`, {
+        data: { 'first name': p1.first, 'last name': p1.last, gender: p1.gender, birthday: p1.birthday, avatar: p1.avatar, gotram: p1.gotram }
+      })
+    } else if (panelMode === 'add-parent') {
+      const child = dataset.find(p => String(p.id) === String(selectedId))
+      const existingParents = Array.isArray(child?.rels?.parents) ? child.rels.parents : []
+      const existingCount = existingParents.length
+
+      if (existingCount === 0) {
+        // create both parents
+        let parent1 = findExistingPerson(p1)
+        if (!parent1) {
+          const res1 = await axios.post('http://localhost:3002/api/persons', {
+            data: { 'first name': p1.first, 'last name': p1.last, gender: p1.gender, birthday: p1.birthday, avatar: p1.avatar, gotram: p1.gotram }
+          })
+          parent1 = res1.data
+        }
+        let parent2 = findExistingPerson(p2)
+        if (!parent2) {
+          const res2 = await axios.post('http://localhost:3002/api/persons', {
+            data: { 'first name': p2.first, 'last name': p2.last, gender: p2.gender, birthday: p2.birthday, avatar: p2.avatar, gotram: p2.gotram }
+          })
+          parent2 = res2.data
+        }
+        // link both as parents
+        await axios.post('http://localhost:3002/api/relations/parent-child', { parent_id: parent1.id, child_id: selectedId })
+        await axios.post('http://localhost:3002/api/relations/parent-child', { parent_id: parent2.id, child_id: selectedId })
+        // make them spouses
+        await axios.post('http://localhost:3002/api/relations/spouse', { a_id: parent1.id, b_id: parent2.id })
+      } else if (existingCount === 1) {
+        // create one new parent and spouse with existing
+        const existingParentId = existingParents[0]
+        const chosen = (p1.first || p1.last) ? p1 : p2
+        let existing = findExistingPerson(chosen)
+        const newParent = existing ? existing : (await axios.post('http://localhost:3002/api/persons', {
+          data: { 'first name': chosen.first, 'last name': chosen.last, gender: chosen.gender, birthday: chosen.birthday, avatar: chosen.avatar, gotram: chosen.gotram }
+        })).data
+        await axios.post('http://localhost:3002/api/relations/parent-child', { parent_id: newParent.id, child_id: selectedId })
+        await axios.post('http://localhost:3002/api/relations/spouse', { a_id: existingParentId, b_id: newParent.id })
+      } else {
+        alert('This person already has two parents.')
+        return
+      }
+    } else if (panelMode === 'add-son' || panelMode === 'add-daughter') {
+      // create child and link to both parents (selected person and their spouse)
+      const childGender = panelMode === 'add-son' ? 'M' : 'F'
+      let existingChild = findExistingPerson({ ...p1, gender: p1.gender || childGender })
+      const child = existingChild ? existingChild : (await axios.post('http://localhost:3002/api/persons', {
+        data: { 'first name': p1.first, 'last name': p1.last, gender: p1.gender || childGender, birthday: p1.birthday, avatar: p1.avatar, gotram: p1.gotram }
+      })).data
+      const person = dataset.find(p => String(p.id) === String(selectedId))
+      const spouses = Array.isArray(person?.rels?.spouses) ? person.rels.spouses : []
+      const spouseId = spouses[0]
+      // Link selected person -> child
+      await axios.post('http://localhost:3002/api/relations/parent-child', { parent_id: selectedId, child_id: child.id })
+      // Link spouse -> child
+      await axios.post('http://localhost:3002/api/relations/parent-child', { parent_id: spouseId, child_id: child.id })
+    } else if (panelMode === 'add-spouse') {
+      // create spouse using Parent 1 fields and link as spouse
+      let spouse = findExistingPerson(p1)
+      if (!spouse) {
+        spouse = (await axios.post('http://localhost:3002/api/persons', {
+          data: { 'first name': p1.first, 'last name': p1.last, gender: p1.gender, birthday: p1.birthday, avatar: p1.avatar, gotram: p1.gotram }
+        })).data
+      }
+      await axios.post('http://localhost:3002/api/relations/spouse', { a_id: selectedId, b_id: spouse.id })
+    }
+    closePanel()
+    // simple refresh for now
+    window.location.reload()
+  } catch (err) {
+    console.error(err)
+    alert('Failed to save. See console for details.')
+  }
+})
 
 </script>
 </body>
